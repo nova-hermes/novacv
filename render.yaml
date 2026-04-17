@@ -1,5 +1,0 @@
-buildCommand: pnpm install && pnpm build
-startCommand: node server.mjs
-envVars:
-  - key: NODE_ENV
-    value: production
