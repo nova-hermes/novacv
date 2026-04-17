@@ -3,8 +3,8 @@ import { Star } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-const REPO_URL = "https://github.com/JOYCEQL/novacv";
-const API_URL = "https://api.github.com/repos/JOYCEQL/novacv";
+const REPO_URL = "https://github.com/nova-hermes/novacv";
+const API_URL = "https://api.github.com/repos/nova-hermes/novacv";
 
 export function GitHubStars() {
   const [stars, setStars] = useState<number | null>(null);
