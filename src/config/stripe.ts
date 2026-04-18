@@ -13,7 +13,7 @@ export const STRIPE_PRICES = {
 // Plan limits
 export const PLAN_LIMITS = {
   free: {
-    maxResumes: 1,
+    maxResumes: 3,
     templates: ["classic", "modern", "minimalist"],
     aiFeatures: false,
     pdfExport: true,
@@ -54,7 +54,7 @@ export const PRICING = {
     period: "",
     description: "Get started with the basics",
     features: [
-      "1 resume",
+      "3 resumes",
       "3 basic templates",
       "PDF export",
       "Markdown export",

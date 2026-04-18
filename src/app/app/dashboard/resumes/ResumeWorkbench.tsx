@@ -115,7 +115,7 @@ export const ResumeWorkbench = () => {
         if (!canCreateResume) {
             setUpgradeDialogConfig({
                 title: "Resume limit reached",
-                description: `Free plan allows ${maxResumes} resume. Upgrade to Pro for unlimited resumes.`,
+                description: `Free plan allows ${maxResumes} resumes. Upgrade to Pro for unlimited resumes.`,
             });
             setShowUpgradeDialog(true);
             return;
