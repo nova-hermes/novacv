@@ -44,6 +44,7 @@ import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfiguration } from "@/hooks/useAIConfiguration";
 import { useAuthGate } from "@/hooks/useAuthGate";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { useExportTrial } from "@/hooks/useExportTrial";
 import { SignInDialog } from "@/components/auth/SignInDialog";
 import { UpgradeDialog } from "@/components/shared/UpgradeDialog";
 import { FAQDialog } from "./FAQDialog";
@@ -109,7 +110,8 @@ const PreviewDock = ({
   const [isExportingJson, setIsExportingJson] = useState(false);
   const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
   const { gated, showDialog, closeDialog } = useAuthGate();
-  const { canUseAI, canExportPDF, canExportMarkdown, isPro } = usePlanLimits();
+  const { canUseAI, isPro } = usePlanLimits();
+  const { tryExport } = useExportTrial();
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeConfig, setUpgradeConfig] = useState({ title: "", description: "" });
 
@@ -187,29 +189,17 @@ const PreviewDock = ({
     );
   };
 
-  // Plan-aware export wrappers — check plan before auth
-  const handleExportPdfGated = () => {
-    if (!canExportPDF) {
+  // Trial-based export wrapper — 3 free exports then upgrade wall
+  const withTrial = (handler: () => void) => () => {
+    if (tryExport()) {
+      handler();
+    } else {
       setUpgradeConfig({
-        title: "PDF export requires Pro",
-        description: "Upgrade to Pro to export your resume as PDF.",
+        title: "Free exports used up",
+        description: "You've used your 3 free exports. Upgrade to Pro for unlimited exports.",
       });
       setShowUpgrade(true);
-      return;
     }
-    gated(handleExportPdf)();
-  };
-
-  const handleExportMarkdownGated = () => {
-    if (!canExportMarkdown) {
-      setUpgradeConfig({
-        title: "Markdown export requires Pro",
-        description: "Upgrade to Pro to export your resume as Markdown.",
-      });
-      setShowUpgrade(true);
-      return;
-    }
-    gated(handleExportMarkdown)();
   };
 
   const { checkConfiguration } = useAIConfiguration();
@@ -382,28 +372,28 @@ const PreviewDock = ({
                   </Tooltip>
                   <DropdownMenuContent align="end" side="left">
                     <DropdownMenuItem
-                      onClick={gated(handleExportPdf)}
+                      onClick={withTrial(handleExportPdf)}
                       disabled={isLoading}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       {t("export.pdf")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={gated(handlePrint)}
+                      onClick={withTrial(handlePrint)}
                       disabled={isLoading}
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       {t("export.print")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={gated(handleExportJson)}
+                      onClick={withTrial(handleExportJson)}
                       disabled={isLoading}
                     >
                       <FileJson className="w-4 h-4 mr-2" />
                       {t("export.json")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={gated(handleExportMarkdown)}
+                      onClick={withTrial(handleExportMarkdown)}
                       disabled={isLoading}
                     >
                       <RiMarkdownLine className="w-4 h-4 mr-2" />
