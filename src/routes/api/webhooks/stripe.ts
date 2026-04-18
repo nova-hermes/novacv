@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { stripe } from "@/lib/server/stripe";
+import { getStripe } from "@/lib/server/stripe";
 import { createServerSupabaseClient } from "@/lib/supabase";
 import type Stripe from "stripe";
 import type { Plan } from "@/config/stripe";
@@ -10,6 +10,7 @@ export const Route = createFileRoute("/api/webhooks/stripe")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const stripe = getStripe();
         if (!stripe || !webhookSecret) {
           console.error("Stripe or webhook secret not configured");
           return new Response("Stripe not configured", { status: 500 });
