@@ -83,3 +83,18 @@ export const IconAI: React.FC<IconProps> = ({ size = 24, className, active }) =>
     <rect x="5" y="28" width="8" height="8" rx="2" fill="#FA8C16" transform="rotate(25 9 32)" />
   </svg>
 );
+
+// Billing: Credit Card (Flat Green)
+export const IconBilling: React.FC<IconProps> = ({ size = 24, className, active }) => (
+  <svg width={size} height={size} viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+    {/* Card body */}
+    <rect x="4" y="8" width="32" height="24" rx="4" fill={active ? "#1890FF" : "#13C2C2"} />
+    {/* Magnetic stripe */}
+    <rect x="4" y="15" width="32" height="5" fill="rgba(0,0,0,0.15)" />
+    {/* Card number lines */}
+    <rect x="8" y="24" width="12" height="2.5" rx="1" fill="white" fillOpacity="0.9" />
+    <rect x="8" y="28" width="8" height="2" rx="1" fill="white" fillOpacity="0.6" />
+    {/* Sparkle indicator */}
+    <circle cx="32" cy="12" r="3" fill="#FAAD14" />
+  </svg>
+);
