@@ -361,31 +361,7 @@ export const ResumeWorkbench = () => {
                                 </Button>
                             </AlertDescription>
                         </Alert>
-                    ) : (
-                        <Alert
-                            variant="destructive"
-                            className="mb-6 bg-red-50/50 dark:bg-red-950/30 border-red-200 dark:border-red-900"
-                        >
-                            <AlertCircle className="h-4 w-4" />
-                            <AlertTitle>{t("dashboard.resumes.notice.title")}</AlertTitle>
-                            <AlertDescription className="flex items-center justify-between">
-                                <span className="text-red-700 dark:text-red-400">
-                                    {t("dashboard.resumes.notice.description")}
-                                </span>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="ml-4 hover:bg-red-100 dark:hover:bg-red-900"
-                                    onClick={() => {
-                                        router.push("/app/dashboard/settings");
-                                    }}
-                                >
-                                    <Settings className="w-4 h-4 mr-2" />
-                                    {t("dashboard.resumes.notice.goToSettings")}
-                                </Button>
-                            </AlertDescription>
-                        </Alert>
-                    )}
+                    ) : null}
                 </motion.div>
 
                 <motion.div
