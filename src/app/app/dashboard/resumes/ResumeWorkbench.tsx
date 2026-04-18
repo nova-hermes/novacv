@@ -18,6 +18,8 @@ import { getConfig, getFileHandle, verifyPermission } from "@/utils/fileSystem";
 import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfigStore } from "@/store/useAIConfigStore";
 import { DEFAULT_TEMPLATES } from "@/config";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
+import { UpgradeDialog } from "@/components/shared/UpgradeDialog";
 import { CreateResumeModal } from "./CreateResumeModal";
 import { ImportResumeDialog } from "./ImportResumeDialog";
 import { ResumeCardItem } from "./ResumeCardItem";
@@ -49,8 +51,11 @@ export const ResumeWorkbench = () => {
         geminiModelId,
     } = useAIConfigStore();
     const router = useRouter();
+    const { canCreateResume, canUseTemplate, canUseAI, maxResumes } = usePlanLimits();
     const [hasConfiguredFolder, setHasConfiguredFolder] = useState(false);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+    const [upgradeDialogConfig, setUpgradeDialogConfig] = useState({ title: "", description: "" });
     const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
     const [isImporting, setIsImporting] = useState(false);
     const jsonFileInputRef = useRef<HTMLInputElement>(null);
@@ -106,6 +111,25 @@ export const ResumeWorkbench = () => {
     }, []);
 
     const handleCreateFromModal = (templateId: string | null) => {
+        // Check plan limits
+        if (!canCreateResume) {
+            setUpgradeDialogConfig({
+                title: "Resume limit reached",
+                description: `Free plan allows ${maxResumes} resume. Upgrade to Pro for unlimited resumes.`,
+            });
+            setShowUpgradeDialog(true);
+            return;
+        }
+
+        if (templateId && !canUseTemplate(templateId)) {
+            setUpgradeDialogConfig({
+                title: "Pro template",
+                description: "This template is available on Pro plans. Upgrade to unlock all templates.",
+            });
+            setShowUpgradeDialog(true);
+            return;
+        }
+
         const isBlank = !templateId;
         const newId = createResume(templateId, isBlank);
 
@@ -203,6 +227,15 @@ export const ResumeWorkbench = () => {
     };
 
     const importResumeFromPdf = async (file: File) => {
+        if (!canUseAI) {
+            setUpgradeDialogConfig({
+                title: "AI features require Pro",
+                description: "Upgrade to Pro to use AI-powered PDF resume import.",
+            });
+            setShowUpgradeDialog(true);
+            return;
+        }
+
         if (!geminiApiKey || !geminiModelId) {
             toast.error(t("dashboard.resumes.importDialog.geminiConfigRequired"));
             router.push("/app/dashboard/ai");
@@ -459,6 +492,13 @@ export const ResumeWorkbench = () => {
                     pdfFileInputRef={pdfFileInputRef}
                     onJsonFileChange={handleJsonFileChange}
                     onPdfFileChange={handlePdfFileChange}
+                />
+
+                <UpgradeDialog
+                    open={showUpgradeDialog}
+                    onClose={() => setShowUpgradeDialog(false)}
+                    title={upgradeDialogConfig.title}
+                    description={upgradeDialogConfig.description}
                 />
             </motion.div>
         </ScrollArea>

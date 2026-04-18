@@ -19,7 +19,9 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useAuthGate } from "@/hooks/useAuthGate";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { SignInDialog } from "@/components/auth/SignInDialog";
+import { UpgradeDialog } from "@/components/shared/UpgradeDialog";
 
 const PdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -30,6 +32,9 @@ const PdfExport = () => {
   const t = useTranslations("pdfExport");
   const tBasicField = useTranslations("workbench.basicPanel.basicFields");
   const { gated, showDialog, closeDialog } = useAuthGate();
+  const { canExportPDF, canExportMarkdown } = usePlanLimits();
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState({ title: "", description: "" });
 
   const handleExport = async () => {
     await exportToPdf({
@@ -92,6 +97,31 @@ const PdfExport = () => {
     );
   };
 
+  // Plan-aware export wrappers
+  const handleExportGated = () => {
+    if (!canExportPDF) {
+      setUpgradeConfig({
+        title: "PDF export requires Pro",
+        description: "Upgrade to Pro to export your resume as PDF.",
+      });
+      setShowUpgrade(true);
+      return;
+    }
+    gated(handleExport)();
+  };
+
+  const handleMarkdownExportGated = () => {
+    if (!canExportMarkdown) {
+      setUpgradeConfig({
+        title: "Markdown export requires Pro",
+        description: "Upgrade to Pro to export your resume as Markdown.",
+      });
+      setShowUpgrade(true);
+      return;
+    }
+    gated(handleMarkdownExport)();
+  };
+
   const isLoading = isExporting || isExportingJson || isExportingMarkdown;
   const loadingText = isExporting
     ? t("button.exporting")
@@ -125,7 +155,7 @@ const PdfExport = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={gated(handleExport)} disabled={isLoading}>
+          <DropdownMenuItem onClick={handleExportGated} disabled={isLoading}>
             <Download className="w-4 h-4 mr-2" />
             {t("button.exportPdf")}
           </DropdownMenuItem>
@@ -137,13 +167,19 @@ const PdfExport = () => {
             <FileJson className="w-4 h-4 mr-2" />
             {t("button.exportJson")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={gated(handleMarkdownExport)} disabled={isLoading}>
+          <DropdownMenuItem onClick={handleMarkdownExportGated} disabled={isLoading}>
             <RiMarkdownLine className="w-4 h-4 mr-2" />
             {t("button.exportMarkdown")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <SignInDialog open={showDialog} onClose={closeDialog} />
+      <UpgradeDialog
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title={upgradeConfig.title}
+        description={upgradeConfig.description}
+      />
     </>
   );
 };

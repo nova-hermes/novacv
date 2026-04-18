@@ -43,7 +43,9 @@ import { AI_MODEL_CONFIGS } from "@/config/ai";
 import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfiguration } from "@/hooks/useAIConfiguration";
 import { useAuthGate } from "@/hooks/useAuthGate";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { SignInDialog } from "@/components/auth/SignInDialog";
+import { UpgradeDialog } from "@/components/shared/UpgradeDialog";
 import { FAQDialog } from "./FAQDialog";
 
 export type IconProps = React.HTMLAttributes<SVGElement>;
@@ -107,6 +109,9 @@ const PreviewDock = ({
   const [isExportingJson, setIsExportingJson] = useState(false);
   const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
   const { gated, showDialog, closeDialog } = useAuthGate();
+  const { canUseAI, canExportPDF, canExportMarkdown, isPro } = usePlanLimits();
+  const [showUpgrade, setShowUpgrade] = useState(false);
+  const [upgradeConfig, setUpgradeConfig] = useState({ title: "", description: "" });
 
   const {
     selectedModel,
@@ -182,11 +187,45 @@ const PreviewDock = ({
     );
   };
 
+  // Plan-aware export wrappers — check plan before auth
+  const handleExportPdfGated = () => {
+    if (!canExportPDF) {
+      setUpgradeConfig({
+        title: "PDF export requires Pro",
+        description: "Upgrade to Pro to export your resume as PDF.",
+      });
+      setShowUpgrade(true);
+      return;
+    }
+    gated(handleExportPdf)();
+  };
+
+  const handleExportMarkdownGated = () => {
+    if (!canExportMarkdown) {
+      setUpgradeConfig({
+        title: "Markdown export requires Pro",
+        description: "Upgrade to Pro to export your resume as Markdown.",
+      });
+      setShowUpgrade(true);
+      return;
+    }
+    gated(handleExportMarkdown)();
+  };
+
   const { checkConfiguration } = useAIConfiguration();
 
   // ... (keep other hooks)
 
   const handleGrammarCheck = useCallback(async () => {
+    if (!canUseAI) {
+      setUpgradeConfig({
+        title: "AI features require Pro",
+        description: "Upgrade to Pro to use AI grammar check and text polishing.",
+      });
+      setShowUpgrade(true);
+      return;
+    }
+
     if (!checkConfiguration()) {
       return;
     }
@@ -343,7 +382,7 @@ const PreviewDock = ({
                   </Tooltip>
                   <DropdownMenuContent align="end" side="left">
                     <DropdownMenuItem
-                      onClick={gated(handleExportPdf)}
+                      onClick={handleExportPdfGated}
                       disabled={isLoading}
                     >
                       <Download className="w-4 h-4 mr-2" />
@@ -364,7 +403,7 @@ const PreviewDock = ({
                       {t("export.json")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={gated(handleExportMarkdown)}
+                      onClick={handleExportMarkdownGated}
                       disabled={isLoading}
                     >
                       <RiMarkdownLine className="w-4 h-4 mr-2" />
@@ -523,6 +562,12 @@ const PreviewDock = ({
         </div>
       </div>
       <SignInDialog open={showDialog} onClose={closeDialog} />
+      <UpgradeDialog
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title={upgradeConfig.title}
+        description={upgradeConfig.description}
+      />
     </>
   );
 };
