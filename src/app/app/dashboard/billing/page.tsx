@@ -17,11 +17,13 @@ import { Badge } from "@/components/ui/badge";
 import { Check, Loader2, Sparkles, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { PaymentMethodDialog } from "@/components/shared/PaymentMethodDialog";
 
 export default function BillingPage() {
   const t = useTranslations("billing");
   const { user, isLoaded, isSignedIn } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
+  const [paymentPlan, setPaymentPlan] = useState<Plan | null>(null);
 
   // Show success/canceled toasts from redirect
   useEffect(() => {
@@ -197,12 +199,9 @@ export default function BillingPage() {
                       "w-full",
                       isLifetime && "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                     )}
-                    onClick={() => handleCheckout(key as Plan)}
+                    onClick={() => setPaymentPlan(key as Plan)}
                     disabled={loading !== null || isCurrent}
                   >
-                    {loading === key ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : null}
                     {isCurrent ? "Current Plan" : isFree ? "Free" : "Upgrade"}
                   </Button>
                 )}
@@ -211,6 +210,14 @@ export default function BillingPage() {
           );
         })}
       </div>
+
+      {paymentPlan && (
+        <PaymentMethodDialog
+          open={!!paymentPlan}
+          onClose={() => setPaymentPlan(null)}
+          plan={paymentPlan}
+        />
+      )}
     </div>
   );
 }
