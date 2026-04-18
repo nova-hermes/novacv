@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { PDF_EXPORT_CONFIG } from "@/config";
+
 import { normalizeFontFamily } from "@/utils/fonts";
 import { ResumeData } from "@/types/resume";
 import { generateResumeMarkdown, ResumeMarkdownOptions } from "@/utils/markdown";
@@ -193,15 +193,16 @@ export const exportToPdf = async ({
       throw new Error(`PDF element #${elementId} not found`);
     }
 
-    const clonedElement = pdfElement.cloneNode(true) as HTMLElement;
     const selectedFontFamily = normalizeFontFamily(fontFamily);
+
+    // Clone and prepare the element for rendering
+    const clonedElement = pdfElement.cloneNode(true) as HTMLElement;
     const transformValue = clonedElement.style.transform || "";
     const scaleMatch = transformValue.match(/scale\(([\d.]+)\)/);
-    
+
     if (scaleMatch) {
       const scale = Number(scaleMatch[1]);
       if (Number.isFinite(scale) && scale > 0 && scale < 1) {
-        // 服务端导出前将 transform 缩放转为 zoom，避免分页计算偏差
         clonedElement.style.removeProperty("transform");
         clonedElement.style.removeProperty("transform-origin");
         clonedElement.style.setProperty("width", "100%", "important");
@@ -209,54 +210,44 @@ export const exportToPdf = async ({
       }
     }
 
-    // 采用 PdfExport.tsx 中的逻辑，统一宽度和 padding 处理
     clonedElement.style.setProperty("width", "100%", "important");
     clonedElement.style.setProperty("padding", "0", "important");
     clonedElement.style.setProperty("box-sizing", "border-box");
     clonedElement.style.setProperty("font-family", selectedFontFamily, "important");
 
+    // Hide page break lines
     const pageBreakLines = clonedElement.querySelectorAll<HTMLElement>(".page-break-line");
     pageBreakLines.forEach((line) => {
       line.style.display = "none";
     });
 
-    const [capturedStyles] = await Promise.all([
-      getOptimizedStyles(),
-      optimizeImages(clonedElement)
-    ]);
+    // Optimize images
+    await optimizeImages(clonedElement);
 
-    // 注入 PdfExport.tsx 中的样式增强
-    const styles = `
-      ${capturedStyles}
-      html, body { background: white !important; background-color: white !important; }
-      html, body, #${elementId} {
-        background: white !important;
-        background-color: white !important;
-        font-family: ${selectedFontFamily} !important;
-      }
-    `;
+    // html2pdf.js — client-side PDF generation (no server needed)
+    const html2pdf = (await import("html2pdf.js")).default;
+    const marginInches = pagePadding > 0 ? pagePadding / 96 : 0.4;
 
-    const response = await fetch(PDF_EXPORT_CONFIG.SERVER_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        content: clonedElement.outerHTML,
-        styles,
-        margin: pagePadding
-      }),
-      mode: "cors",
-      signal: AbortSignal.timeout(PDF_EXPORT_CONFIG.TIMEOUT)
-    });
-
-    if (!response.ok) {
-      throw new Error(`PDF generation failed: ${response.status}`);
-    }
-
-    const blob = await response.blob();
-    const fileName = `${getSafeFileName(title)}.pdf`;
-    downloadBlob(blob, fileName);
+    await html2pdf()
+      .set({
+        margin: marginInches,
+        filename: `${getSafeFileName(title)}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#ffffff",
+        },
+        jsPDF: {
+          unit: "in",
+          format: "a4",
+          orientation: "portrait",
+        },
+        pagebreak: { mode: ["css", "legacy"] },
+      })
+      .from(clonedElement)
+      .save();
 
     if (successMessage) toast.success(successMessage);
     console.log(`Total export took ${performance.now() - exportStartTime}ms`);
