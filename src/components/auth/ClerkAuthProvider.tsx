@@ -1,4 +1,4 @@
-import { ClerkProvider, SignIn, SignUp } from "@clerk/clerk-react";
+import { ClerkProvider, SignIn, SignUp } from "@clerk/tanstack-react-start";
 import { ReactNode } from "react";
 
 const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;

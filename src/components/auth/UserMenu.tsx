@@ -1,4 +1,4 @@
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/tanstack-react-start";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "@/lib/link";
 

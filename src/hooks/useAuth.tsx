@@ -5,7 +5,7 @@ import {
   useState,
   ReactNode,
 } from "react";
-import { useUser, useAuth as useClerkAuth } from "@clerk/clerk-react";
+import { useUser, useAuth as useClerkAuth } from "@clerk/tanstack-react-start";
 import { supabase } from "@/lib/supabase";
 
 interface AuthUser {
