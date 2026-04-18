@@ -18,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { useAuthGate } from "@/hooks/useAuthGate";
+import { SignInDialog } from "@/components/auth/SignInDialog";
 
 const PdfExport = () => {
   const [isExporting, setIsExporting] = useState(false);
@@ -27,6 +29,7 @@ const PdfExport = () => {
   const { globalSettings = {}, title } = activeResume || {};
   const t = useTranslations("pdfExport");
   const tBasicField = useTranslations("workbench.basicPanel.basicFields");
+  const { gated, showDialog, closeDialog } = useAuthGate();
 
   const handleExport = async () => {
     await exportToPdf({
@@ -122,24 +125,25 @@ const PdfExport = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExport} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handleExport)} disabled={isLoading}>
             <Download className="w-4 h-4 mr-2" />
             {t("button.exportPdf")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handlePrint} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handlePrint)} disabled={isLoading}>
             <Printer className="w-4 h-4 mr-2" />
             {t("button.print")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleJsonExport} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handleJsonExport)} disabled={isLoading}>
             <FileJson className="w-4 h-4 mr-2" />
             {t("button.exportJson")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleMarkdownExport} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handleMarkdownExport)} disabled={isLoading}>
             <RiMarkdownLine className="w-4 h-4 mr-2" />
             {t("button.exportMarkdown")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <SignInDialog open={showDialog} onClose={closeDialog} />
     </>
   );
 };

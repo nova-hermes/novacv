@@ -806,5 +806,11 @@
         "answer": "In the 'Layout' settings of the left edit panel, hover your cursor over the 'Drag Handle' (usually represented by a six-dot icon) on the left side of the module card. Click and hold the left mouse button to drag the module up or down to reorder the sections of your entire resume."
       }
     }
+  },
+  "authGate": {
+    "signIn": {
+      "title": "Sign in to continue",
+      "description": "Create a free account to export and save your resume."
+    }
   }
 }

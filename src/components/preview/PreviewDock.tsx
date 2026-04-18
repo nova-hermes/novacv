@@ -42,6 +42,8 @@ import { useAIConfigStore } from "@/store/useAIConfigStore";
 import { AI_MODEL_CONFIGS } from "@/config/ai";
 import { useResumeStore } from "@/store/useResumeStore";
 import { useAIConfiguration } from "@/hooks/useAIConfiguration";
+import { useAuthGate } from "@/hooks/useAuthGate";
+import { SignInDialog } from "@/components/auth/SignInDialog";
 import { FAQDialog } from "./FAQDialog";
 
 export type IconProps = React.HTMLAttributes<SVGElement>;
@@ -104,6 +106,7 @@ const PreviewDock = ({
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingJson, setIsExportingJson] = useState(false);
   const [isExportingMarkdown, setIsExportingMarkdown] = useState(false);
+  const { gated, showDialog, closeDialog } = useAuthGate();
 
   const {
     selectedModel,
@@ -340,28 +343,28 @@ const PreviewDock = ({
                   </Tooltip>
                   <DropdownMenuContent align="end" side="left">
                     <DropdownMenuItem
-                      onClick={handleExportPdf}
+                      onClick={gated(handleExportPdf)}
                       disabled={isLoading}
                     >
                       <Download className="w-4 h-4 mr-2" />
                       {t("export.pdf")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={handlePrint}
+                      onClick={gated(handlePrint)}
                       disabled={isLoading}
                     >
                       <Printer className="w-4 h-4 mr-2" />
                       {t("export.print")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={handleExportJson}
+                      onClick={gated(handleExportJson)}
                       disabled={isLoading}
                     >
                       <FileJson className="w-4 h-4 mr-2" />
                       {t("export.json")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={handleExportMarkdown}
+                      onClick={gated(handleExportMarkdown)}
                       disabled={isLoading}
                     >
                       <RiMarkdownLine className="w-4 h-4 mr-2" />
@@ -519,6 +522,7 @@ const PreviewDock = ({
           <FAQDialog />
         </div>
       </div>
+      <SignInDialog open={showDialog} onClose={closeDialog} />
     </>
   );
 };
