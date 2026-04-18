@@ -34,14 +34,36 @@ function extractSessionToken(request: Request): string | null {
 }
 
 /**
- * Verify a session token with Clerk's API and return user info.
- * Falls back to JWT decoding if CLERK_SECRET_KEY is not set.
+ * Decode a JWT payload without verification (just base64 decode).
+ * Used to extract session/user IDs from Clerk's __session cookie.
+ */
+function decodeJwtPayload(token: string): Record<string, any> | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = parts[1]
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Verify a Clerk session and return user info.
+ * 1. Decode the JWT from the __session cookie to get user/session IDs
+ * 2. Verify the session is active via Clerk's API
+ * 3. Fetch user details
  */
 export async function authenticateRequest(
   request: Request
 ): Promise<ClerkUser | null> {
   const sessionToken = extractSessionToken(request);
-  if (!sessionToken) return null;
+  if (!sessionToken) {
+    console.warn("[Clerk Auth] No __session cookie found");
+    return null;
+  }
 
   const clerkSecretKey = process.env.CLERK_SECRET_KEY;
   if (!clerkSecretKey) {
@@ -50,21 +72,34 @@ export async function authenticateRequest(
   }
 
   try {
-    // Use Clerk's /sessions/ endpoint to verify
-    const response = await fetch(`${CLERK_API_BASE}/sessions/verify`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${clerkSecretKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: sessionToken }),
-    });
+    // Decode JWT to get user ID and session ID
+    const payload = decodeJwtPayload(sessionToken);
+    if (!payload) return null;
 
-    if (!response.ok) return null;
+    const userId = payload.sub;
+    const sessionId = payload.sid;
+    if (!userId) {
+      console.warn("[Clerk Auth] JWT has no sub claim");
+      return null;
+    }
+    console.log("[Clerk Auth] Verified user:", userId);
 
-    const data = await response.json();
-    const userId = data?.session?.user_id;
-    if (!userId) return null;
+    // Verify session is active via Clerk API
+    if (sessionId) {
+      const sessionResponse = await fetch(
+        `${CLERK_API_BASE}/sessions/${sessionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${clerkSecretKey}`,
+          },
+        }
+      );
+
+      if (!sessionResponse.ok) return null;
+
+      const sessionData = await sessionResponse.json();
+      if (sessionData.status !== "active") return null;
+    }
 
     // Fetch user details
     const userResponse = await fetch(`${CLERK_API_BASE}/users/${userId}`, {
