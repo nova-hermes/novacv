@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { getFileHandle, verifyPermission } from "@/utils/fileSystem";
+import { generateUUID } from "@/utils/uuid";
+import {
+  debouncedSyncToServer,
+  syncToServerImmediate,
+  deleteFromServerImmediate,
+} from "@/lib/serverSyncBridge";
 import {
   BasicInfo,
   Education,
@@ -19,7 +25,7 @@ import {
   blankResumeState,
   blankResumeStateEn,
 } from "@/config/initialResumeData";
-import { generateUUID } from "@/utils/uuid";
+
 interface ResumeStore {
   resumes: Record<string, ResumeData>;
   activeResumeId: string | null;
@@ -179,6 +185,7 @@ export const useResumeStore = create(
         }));
 
         syncResumeToFile(newResume);
+        syncToServerImmediate(newResume);
 
         return id;
       },
@@ -194,6 +201,7 @@ export const useResumeStore = create(
           };
 
           debouncedSyncToFile(updatedResume, resume);
+          debouncedSyncToServer(updatedResume);
 
           return {
             resumes: {
@@ -237,6 +245,8 @@ export const useResumeStore = create(
             activeResume: null,
           };
         });
+
+        deleteFromServerImmediate(resumeId);
 
         (async () => {
           try {

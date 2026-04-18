@@ -7,6 +7,7 @@ import {
 } from "react";
 import { useUser, useAuth as useClerkAuth } from "@clerk/tanstack-react-start";
 import { supabase } from "@/lib/supabase";
+import { setSyncUserId } from "@/lib/serverSyncBridge";
 
 interface AuthUser {
   id: string; // Supabase user ID (UUID)
@@ -95,6 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       refreshUser();
     }
   }, [clerkLoaded, clerkUser?.id]);
+
+  // Sync user ID to server sync bridge
+  useEffect(() => {
+    setSyncUserId(user?.id ?? null);
+  }, [user?.id]);
 
   return (
     <AuthContext.Provider
