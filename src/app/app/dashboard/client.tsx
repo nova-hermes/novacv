@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/tooltip";
 import Logo from "@/components/shared/Logo";
 import { useLocale, useTranslations } from "@/i18n/compat/client";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 interface MenuItem {
   title: string;
@@ -166,7 +167,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
               </SidebarGroupContent>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter />
+          <SidebarFooter className="p-3 border-t border-border/40">
+            <UserMenu />
+          </SidebarFooter>
         </Sidebar>
         <main className="flex-1 flex flex-col">
           <div className="p-2">
