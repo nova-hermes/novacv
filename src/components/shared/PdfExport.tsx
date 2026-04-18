@@ -155,7 +155,7 @@ const PdfExport = () => {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleExportGated} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handleExport)} disabled={isLoading}>
             <Download className="w-4 h-4 mr-2" />
             {t("button.exportPdf")}
           </DropdownMenuItem>
@@ -167,7 +167,7 @@ const PdfExport = () => {
             <FileJson className="w-4 h-4 mr-2" />
             {t("button.exportJson")}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleMarkdownExportGated} disabled={isLoading}>
+          <DropdownMenuItem onClick={gated(handleMarkdownExport)} disabled={isLoading}>
             <RiMarkdownLine className="w-4 h-4 mr-2" />
             {t("button.exportMarkdown")}
           </DropdownMenuItem>

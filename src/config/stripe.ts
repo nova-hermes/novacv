@@ -16,8 +16,8 @@ export const PLAN_LIMITS = {
     maxResumes: 1,
     templates: ["classic", "modern", "minimalist"],
     aiFeatures: false,
-    pdfExport: false,
-    markdownExport: false,
+    pdfExport: true,
+    markdownExport: true,
     watermark: true,
   },
   pro_monthly: {
@@ -56,6 +56,8 @@ export const PRICING = {
     features: [
       "1 resume",
       "3 basic templates",
+      "PDF export",
+      "Markdown export",
       "JSON export",
       "Local storage",
     ],
@@ -72,6 +74,7 @@ export const PRICING = {
       "AI grammar check",
       "PDF export (no watermark)",
       "Markdown export",
+      "No watermarks",
       "Cloud sync",
       "Priority support",
     ],

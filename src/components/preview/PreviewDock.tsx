@@ -382,7 +382,7 @@ const PreviewDock = ({
                   </Tooltip>
                   <DropdownMenuContent align="end" side="left">
                     <DropdownMenuItem
-                      onClick={handleExportPdfGated}
+                      onClick={gated(handleExportPdf)}
                       disabled={isLoading}
                     >
                       <Download className="w-4 h-4 mr-2" />
@@ -403,7 +403,7 @@ const PreviewDock = ({
                       {t("export.json")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      onClick={handleExportMarkdownGated}
+                      onClick={gated(handleExportMarkdown)}
                       disabled={isLoading}
                     >
                       <RiMarkdownLine className="w-4 h-4 mr-2" />
