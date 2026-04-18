@@ -22,7 +22,6 @@ export default function BillingPage() {
   const t = useTranslations("billing");
   const { user, isLoaded, isSignedIn } = useAuth();
   const [loading, setLoading] = useState<string | null>(null);
-  const searchParams = useSearchParams();
 
   // Show success/canceled toasts from redirect
   useEffect(() => {
